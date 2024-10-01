@@ -1,0 +1,82 @@
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+
+public class Autonomous extends LinearOpMode {
+    // Declare motors and servos
+    private DcMotor backLeftMotor = null;
+    private DcMotor frontLeftMotor = null;
+    private DcMotor backRightMotor = null;
+    private DcMotor frontRightMotor = null;
+    private Servo servo1 = null;
+
+    @Override
+    public void runOpMode() {
+        // Initialize motors and servos
+        backLeftMotor = hardwareMap.get(DcMotor.class, "backLeftMotor");
+        frontLeftMotor = hardwareMap.get(DcMotor.class, "frontLeftMotor");
+        backRightMotor = hardwareMap.get(DcMotor.class, "backRightMotor");
+        frontRightMotor = hardwareMap.get(DcMotor.class, "frontRightMotor");
+        servo1 = hardwareMap.get(Servo.class, "Servo1");
+
+        // Wait for the start button to be pressed
+        waitForStart();
+
+        // Check if the op mode is active before proceeding
+        if (opModeIsActive()) {
+            // Run the forward movement for a certain distance
+            forwardForDistance(10); // Move forward for 10 inches
+        } else {
+            telemetry.addData("Status", "OpMode is not active");
+            telemetry.update();
+        }
+    }
+
+    public void forwardForDistance(double inches) {
+        // Reset encoders
+        frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        
+        // Calculate ticks needed for the desired distance
+        int wheelDiameter = 3; // inches
+        double wheelCircumference = wheelDiameter * Math.PI;
+        double rotations = inches / wheelCircumference; // number of wheel rotations needed
+        double ticksPerRevolution = 560; // ticks per revolution on the motor
+        int ticks = (int) (rotations * ticksPerRevolution); // total number of motor ticks
+
+        // Set target positions
+        frontLeftMotor.setTargetPosition(ticks);
+        backLeftMotor.setTargetPosition(ticks);
+        frontRightMotor.setTargetPosition(ticks);
+        backRightMotor.setTargetPosition(ticks);
+
+        // Set motors to run to position
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        // Set power to the motors
+        frontLeftMotor.setPower(1);
+        backLeftMotor.setPower(1);
+        frontRightMotor.setPower(1);
+        backRightMotor.setPower(1);
+
+        // Wait until motors finish their movements
+        while (frontLeftMotor.isBusy() || backLeftMotor.isBusy() || frontRightMotor.isBusy() || backRightMotor.isBusy()) {
+            // Do nothing, just wait
+        }
+
+        // Stop all motors
+        frontLeftMotor.setPower(0);
+        backLeftMotor.setPower(0);
+        frontRightMotor.setPower(0);
+        backRightMotor.setPower(0);
+        
+        // Print completion message
+        telemetry.addData("Status", "Moved forward for %.2f inches", inches);
+        telemetry.update();
+    }
+}
